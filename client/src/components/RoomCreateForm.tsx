@@ -40,7 +40,9 @@ export function RoomCreateForm({ onCancel }: RoomCreateFormProps) {
   });
 
   const onSubmit = (data: FormData) => {
+    console.log('Form submitted with data:', data);
     createRoom(data.nickname, data.roomName, data.roomTopic);
+    console.log('createRoom function called');
   };
 
   return (

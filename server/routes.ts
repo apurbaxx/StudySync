@@ -168,9 +168,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper functions for WebSocket message handling
   
   async function handleCreateRoom(ws: WebSocket, socketId: string, payload: any) {
+    console.log('Creating room with payload:', payload);
+    console.log('Using socket ID:', socketId);
+    
     try {
       const { nickname, roomName, roomTopic } = payload;
+      console.log(`Creating room: ${roomName} with topic: ${roomTopic || 'none'} for user ${nickname}`);
+      
       const roomId = generateRoomCode();
+      console.log('Generated room code:', roomId);
       
       // Create the room
       const roomData = insertRoomSchema.parse({
@@ -179,7 +185,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         topic: roomTopic || 'General Study'
       });
       
+      console.log('Validated room data:', roomData);
       const room = await storage.createRoom(roomData);
+      console.log('Room created:', room);
       
       // Create the user as host
       const userData = insertUserSchema.parse({
@@ -190,33 +198,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isHost: true
       });
       
+      console.log('Validated user data:', userData);
       const user = await storage.createUser(userData);
+      console.log('User created:', user);
       
       // Create a system message
-      await storage.createMessage({
+      const message = await storage.createMessage({
         roomId,
         type: 'system',
         text: `${nickname} created the room`
       });
+      console.log('System message created:', message);
       
-      // Send success response to client
-      ws.send(JSON.stringify({
+      // Prepare response
+      const response = {
         type: 'room_created',
         payload: {
           roomId,
           room,
           user
         }
-      }));
+      };
+      console.log('Sending response:', response);
+      
+      // Send success response to client
+      try {
+        ws.send(JSON.stringify(response));
+        console.log('Room creation response sent successfully');
+      } catch (sendError) {
+        console.error('Error sending room_created response:', sendError);
+      }
       
     } catch (error) {
       console.error('Error creating room:', error);
-      ws.send(JSON.stringify({
-        type: 'error',
-        payload: {
-          message: 'Failed to create room'
-        }
-      }));
+      try {
+        ws.send(JSON.stringify({
+          type: 'error',
+          payload: {
+            message: 'Failed to create room',
+            details: error instanceof Error ? error.message : String(error)
+          }
+        }));
+      } catch (sendError) {
+        console.error('Error sending error response:', sendError);
+      }
     }
   }
   

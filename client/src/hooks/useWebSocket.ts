@@ -88,11 +88,24 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
   }, []); // No dependencies to avoid unnecessary reconnections
 
   const sendMessage = useCallback((data: any) => {
+    console.log('WebSocket sendMessage called with:', data);
+    console.log('WebSocket current state:', socketRef.current ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][socketRef.current.readyState] : 'No connection');
+    
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(typeof data === 'string' ? data : JSON.stringify(data));
-      return true;
+      try {
+        const message = typeof data === 'string' ? data : JSON.stringify(data);
+        console.log('Sending message:', message);
+        socketRef.current.send(message);
+        console.log('Message sent successfully');
+        return true;
+      } catch (error) {
+        console.error('Error sending WebSocket message:', error);
+        return false;
+      }
+    } else {
+      console.error('WebSocket not open. Current readyState:', socketRef.current?.readyState);
+      return false;
     }
-    return false;
   }, []);
 
   const reconnect = useCallback(() => {

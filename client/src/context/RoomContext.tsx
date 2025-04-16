@@ -64,11 +64,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   // Handle WebSocket messages
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
+      console.log('Received WebSocket message:', event.data);
       const data = JSON.parse(event.data);
+      console.log('Parsed message data:', data);
       
       switch (data.type) {
         case 'connection_established':
           // Received socket ID from server
+          console.log('Connection established, socketId:', data.payload.socketId);
           if (user) {
             setUser({ ...user, socketId: data.payload.socketId });
           }
@@ -76,18 +79,30 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           
         case 'error':
           // Handle errors
+          console.error('Received error from server:', data.payload);
           toast({
             title: 'Error',
-            description: data.payload.message,
+            description: data.payload.message || 'An unknown error occurred',
             variant: 'destructive'
           });
+          
+          // Reset loading state if there was an error during room creation/joining
+          setIsLoadingRoom(false);
           break;
           
         case 'room_created':
           // Successfully created a room
+          console.log('Room created successfully:', data.payload);
           setRoom(data.payload.room);
           setUser(data.payload.user);
           setIsLoadingRoom(false);
+          
+          // Show success toast
+          toast({
+            title: 'Success',
+            description: `Room ${data.payload.roomId} created successfully!`,
+            variant: 'default'
+          });
           break;
           
         case 'room_joined':
