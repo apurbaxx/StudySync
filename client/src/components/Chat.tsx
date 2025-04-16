@@ -9,16 +9,14 @@ export function Chat() {
   const { messages, sendChatMessage } = useRoom();
   const { user } = useUser();
   const [messageText, setMessageText] = useState('');
-  const [chatVisible, setChatVisible] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Scroll to bottom when messages change
   useEffect(() => {
-    if (messagesEndRef.current && chatVisible) {
+    if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, chatVisible]);
+  }, [messages]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,91 +26,37 @@ export function Chat() {
     }
   };
   
-  const toggleChat = () => {
-    setChatVisible(!chatVisible);
-  };
-  
-  const toggleSound = () => {
-    setSoundEnabled(!soundEnabled);
-  };
-  
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md flex-1 flex flex-col overflow-hidden">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <h3 className="font-medium text-gray-800 dark:text-white">Chat</h3>
-        <div className="flex space-x-2">
-          <button 
-            onClick={toggleChat}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            aria-label={chatVisible ? "Hide chat" : "Show chat"}
-          >
-            <i className={`bx ${chatVisible ? 'bx-hide' : 'bx-show'} text-xl`}></i>
-          </button>
-          <button 
-            onClick={toggleSound}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
-          >
-            <i className={`bx ${soundEnabled ? 'bx-volume-full' : 'bx-volume-mute'} text-xl`}></i>
-          </button>
-        </div>
-      </div>
-      
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* Chat Messages */}
-      <div 
-        className={`flex-1 p-4 overflow-y-auto no-scrollbar space-y-4 ${chatVisible ? '' : 'hidden'}`}
-      >
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 ? (
           <div className="flex justify-center items-center h-full">
-            <p className="text-sm text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
+            <p className="text-sm text-indigo-300">No messages yet. Start the conversation!</p>
           </div>
         ) : (
           messages.map((message) => (
             message.type === 'system' ? (
               // System Message
               <div key={message.id} className="flex justify-center">
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-1 text-xs text-gray-600 dark:text-gray-400">
+                <div className="bg-indigo-800/50 rounded-full px-4 py-1 text-xs text-indigo-300">
                   {message.text}
                 </div>
               </div>
             ) : message.userId === user?.id ? (
               // Current User's Message
-              <div key={message.id} className="flex items-start flex-row-reverse space-x-reverse space-x-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="text-xs">
-                    {getInitials(message.username || '')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-baseline justify-end mb-1">
-                    <span className="mr-2 text-xs text-gray-500 dark:text-gray-400">
-                      {formatTimeString(message.timestamp)}
-                    </span>
-                    <p className="font-medium text-gray-800 dark:text-white text-sm">You</p>
-                  </div>
-                  <div className="bg-primary text-white rounded-lg p-3 text-sm">
-                    {message.text}
-                  </div>
+              <div key={message.id} className="flex flex-col">
+                <div className="bg-indigo-700/50 text-sm p-2 rounded-lg max-w-[80%] self-end">
+                  <div className="text-xs text-indigo-300 mb-1">You</div>
+                  {message.text}
                 </div>
               </div>
             ) : (
               // Other User's Message
-              <div key={message.id} className="flex items-start space-x-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="text-xs">
-                    {getInitials(message.username || '')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-baseline mb-1">
-                    <p className="font-medium text-gray-800 dark:text-white text-sm">{message.username}</p>
-                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                      {formatTimeString(message.timestamp)}
-                    </span>
-                  </div>
-                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 text-gray-800 dark:text-gray-200 text-sm">
-                    {message.text}
-                  </div>
+              <div key={message.id} className="flex flex-col">
+                <div className="bg-indigo-900/50 text-sm p-2 rounded-lg max-w-[80%] self-start">
+                  <div className="text-xs text-indigo-400 mb-1">{message.username}</div>
+                  {message.text}
                 </div>
               </div>
             )
@@ -122,18 +66,30 @@ export function Chat() {
       </div>
       
       {/* Chat Input */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <form onSubmit={handleSubmit} className="flex space-x-2">
+      <div className="p-3 border-t border-indigo-800">
+        <form onSubmit={handleSubmit} className="relative">
           <input 
             type="text" 
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Type a message..." 
-            className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            placeholder="Send a message..." 
+            className="w-full bg-indigo-900/50 rounded-lg border border-indigo-700 px-3 py-2 text-sm placeholder-indigo-400 text-white"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
           />
-          <Button type="submit" className="px-4 py-2 flex items-center justify-center">
-            <i className="bx bx-send"></i>
-          </Button>
+          <button 
+            type="submit" 
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-indigo-400 hover:text-indigo-200"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
         </form>
       </div>
     </div>

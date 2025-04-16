@@ -5,53 +5,66 @@ import { useUser } from '@/context/UserContext';
 import { formatTime } from '@/lib/utils';
 
 export function TimerControl() {
-  const { room, remainingTime, timerStart, timerPause, timerReset } = useRoom();
+  const { room, remainingTime, timerStart, timerPause, timerReset, timerToggleMode } = useRoom();
   const { user } = useUser();
   
   const isHost = user?.isHost ?? false;
   const isRunning = room?.timerState === 'running';
   
+  // This component is no longer directly used in the new design
+  // The timer controls are integrated directly into the StudyRoom component
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 shadow-md">
-      <div className="flex flex-col md:flex-row items-center justify-between">
-        <div className="flex flex-col items-center md:items-start mb-4 md:mb-0">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-1">Pomodoro Timer</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            <span className={`${room?.timerMode === 'study' ? 'text-primary' : 'text-accent'} font-medium`}>
-              {room?.timerMode === 'study' ? 'Study Session' : 'Break Time'}
-            </span> · {formatTime(remainingTime)} remaining
-          </p>
-        </div>
-        
-        <div className="flex space-x-3">
-          {isRunning ? (
-            <Button 
-              onClick={timerPause} 
-              variant="secondary" 
-              disabled={!isHost}
-              className="px-4"
-            >
-              <i className="bx bx-pause mr-1"></i> Pause
-            </Button>
-          ) : (
-            <Button 
-              onClick={timerStart} 
-              disabled={!isHost}
-              className="px-4"
-            >
-              <i className="bx bx-play mr-1"></i> Start
-            </Button>
-          )}
-          <Button 
-            onClick={timerReset} 
-            variant="secondary" 
-            disabled={!isHost}
-            className="px-4"
-          >
-            <i className="bx bx-refresh mr-1"></i> Reset
-          </Button>
-        </div>
-      </div>
+    <div className="flex justify-center space-x-2">
+      {isRunning ? (
+        <Button 
+          onClick={timerPause} 
+          variant="ghost" 
+          disabled={!isHost}
+          size="sm" 
+          className="bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 rounded-full"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </Button>
+      ) : (
+        <Button 
+          onClick={timerStart} 
+          disabled={!isHost}
+          variant="ghost" 
+          size="sm" 
+          className="bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-full"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="10 8 16 12 10 16 10 8"></polygon>
+          </svg>
+        </Button>
+      )}
+      <Button 
+        onClick={timerReset} 
+        variant="ghost" 
+        disabled={!isHost}
+        size="sm" 
+        className="bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 rounded-full"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <rect x="9" y="9" width="6" height="6"></rect>
+        </svg>
+      </Button>
+      <Button
+        onClick={timerToggleMode}
+        variant="ghost" 
+        disabled={!isHost}
+        size="sm" 
+        className="bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 rounded-full"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22a10 10 0 1 0-9-12h9z"></path>
+        </svg>
+      </Button>
     </div>
   );
 }

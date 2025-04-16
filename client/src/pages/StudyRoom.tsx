@@ -165,94 +165,26 @@ export function StudyRoom({ onLeaveRoom }: StudyRoomProps) {
             </div>
           </div>
           
-          <div className="mt-4 flex justify-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-full"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polygon points="10 8 16 12 10 16 10 8"></polygon>
-              </svg>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 rounded-full"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="6" y="4" width="4" height="16"></rect>
-                <rect x="14" y="4" width="4" height="16"></rect>
-              </svg>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 rounded-full"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <rect x="9" y="9" width="6" height="6"></rect>
-              </svg>
-            </Button>
+          <div className="mt-4">
+            <TimerControl />
           </div>
         </div>
         
         {/* Todo List */}
         <TodoList />
         
-        {/* Chat */}
+        {/* Chat - Using the existing Chat component but styled for our new design */}
         <div className="flex-1 bg-indigo-950/90 text-white rounded-xl shadow-lg flex flex-col overflow-hidden">
           <div className="p-3 border-b border-indigo-800">
             <div className="flex justify-between items-center">
               <h3 className="font-medium">Chat</h3>
-              <span className="text-xs text-indigo-300">6:54:08PM</span>
+              <span className="text-xs text-indigo-300">{new Date().toLocaleTimeString()}</span>
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {/* Example Chat Messages */}
-            <div className="flex flex-col">
-              <div className="bg-indigo-900/50 text-sm p-2 rounded-lg max-w-[80%] self-start">
-                <div className="text-xs text-indigo-400 mb-1">KrisG890</div>
-                Hey, what question in the worksheet are you on?
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <div className="bg-indigo-700/50 text-sm p-2 rounded-lg max-w-[80%] self-end">
-                <div className="text-xs text-indigo-300 mb-1">You</div>
-                Yeah same, it's soo hard
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <div className="bg-indigo-900/50 text-sm p-2 rounded-lg max-w-[80%] self-start">
-                <div className="text-xs text-indigo-400 mb-1">JohnBauer</div>
-                I'm still stuck on problem 5
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <div className="bg-indigo-900/50 text-sm p-2 rounded-lg max-w-[80%] self-start">
-                <div className="text-xs text-indigo-400 mb-1">DannyN007</div>
-                make it stop bruh 😭
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-3 border-t border-indigo-800">
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Send a message..." 
-                className="w-full bg-indigo-900/50 rounded-lg border border-indigo-700 px-3 py-2 text-sm placeholder-indigo-400"
-              />
-              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-indigo-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-            </div>
+          {/* We'll update the styling of the Chat component with a wrapper */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <Chat />
           </div>
         </div>
       </div>
