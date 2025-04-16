@@ -6,39 +6,35 @@ import { getInitials, getStatusColor } from '@/lib/utils';
 export function MemberList() {
   const { members } = useRoom();
   
-  return (
-    <div className="p-4">
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-        Members ({members.length})
-      </h3>
-      
-      <div className="space-y-3">
-        {members.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No members yet</p>
-        ) : (
-          members.map((member) => (
-            <div key={member.id} className="flex items-center space-x-3">
-              <div className="relative">
-                <Avatar>
-                  <AvatarFallback>
-                    {getInitials(member.username)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className={`absolute bottom-0 right-0 w-3 h-3 ${getStatusColor(member.status)} rounded-full border-2 border-white dark:border-gray-800`}></div>
-              </div>
-              <div>
-                <p className="font-medium text-gray-800 dark:text-white">
-                  {member.username} {member.isHost && <span className="text-xs text-gray-500">(Host)</span>}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {member.status === 'focused' ? 'Focused' : 
-                   member.status === 'break' ? 'On break' : 'Away'}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
+  // Skip current user since they're displayed separately
+  const otherMembers = members.filter(m => !m.isHost);
+  
+  if (members.length === 0) {
+    return (
+      <div className="flex flex-col items-center py-4 px-2">
+        <p className="text-xs text-center text-indigo-300">No other members yet</p>
       </div>
+    );
+  }
+  
+  return (
+    <div className="flex flex-col items-center space-y-6">
+      {otherMembers.map((member) => (
+        <div key={member.id} className="relative" title={member.username}>
+          <Avatar className="h-16 w-16 border-2 border-indigo-900">
+            <AvatarFallback className="bg-indigo-800 text-white">
+              {getInitials(member.username)}
+            </AvatarFallback>
+          </Avatar>
+          <div 
+            className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-indigo-950 ${
+              member.status === 'focused' ? 'bg-green-500' : 
+              member.status === 'break' ? 'bg-yellow-500' : 
+              'bg-gray-500'
+            }`}
+          ></div>
+        </div>
+      ))}
     </div>
   );
 }
