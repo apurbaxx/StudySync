@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(120deg, #8B5CF6, #6366F1, #EC4899);
+    background-size: 300% 300%;
+    animation: gradient 15s ease infinite;
+  }
+  
+  .dark .gradient-bg {
+    background: linear-gradient(120deg, #4B3B89, #3E3F8F, #AA2E6B);
+    background-size: 300% 300%;
+    animation: gradient 15s ease infinite;
+  }
+  
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .pomodoro-timer {
+    position: relative;
+    width: 180px;
+    height: 180px;
+  }
+  
+  .timer-circle {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.5s;
+  }
+  
+  .timer-background {
+    stroke: #E5E7EB;
+  }
+  
+  .dark .timer-background {
+    stroke: #374151;
+  }
+  
+  .timer-progress {
+    stroke: #6366F1;
+    transition: stroke-dashoffset 1s linear;
+  }
+  
+  .timer-progress.break {
+    stroke: #EC4899;
+  }
+}
