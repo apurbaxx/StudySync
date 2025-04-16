@@ -277,15 +277,19 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, [user, setUser, toast]);
   
+  // Create a stable WebSocket connection with disabled auto-reconnect
   const { sendMessage } = useWebSocket({
     onMessage: handleMessage,
+    onOpen: () => console.log('Connected to study room server'),
+    onClose: () => console.log('Disconnected from study room server'),
     onError: () => {
       toast({
         title: 'Connection Error',
         description: 'Failed to connect to the server',
         variant: 'destructive'
       });
-    }
+    },
+    reconnectAttempts: 0 // Disable automatic reconnection
   });
   
   // Function to start the countdown timer

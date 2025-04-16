@@ -35,6 +35,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
   const attemptRef = useRef<number>(0);
   const [status, setStatus] = useState<WebSocketStatus>('connecting');
 
+  // Define connect function without dependencies
   const connect = useCallback(() => {
     // Close existing socket if any
     if (socketRef.current) {
@@ -49,34 +50,42 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     socketRef.current = socket;
     setStatus('connecting');
 
+    // Use stable references to event handlers
+    const currentOnOpen = onOpen;
+    const currentOnMessage = onMessage;
+    const currentOnClose = onClose;
+    const currentOnError = onError;
+    const currentReconnectAttempts = reconnectAttempts;
+    const currentReconnectInterval = reconnectInterval;
+
     socket.onopen = (event) => {
       setStatus('open');
       attemptRef.current = 0;
-      if (onOpen) onOpen(event);
+      if (currentOnOpen) currentOnOpen(event);
     };
 
     socket.onmessage = (event) => {
-      if (onMessage) onMessage(event);
+      if (currentOnMessage) currentOnMessage(event);
     };
 
     socket.onclose = (event) => {
       setStatus('closed');
-      if (onClose) onClose(event);
+      if (currentOnClose) currentOnClose(event);
       
-      // Attempt to reconnect if not explicitly closed
-      if (attemptRef.current < reconnectAttempts) {
+      // Attempt to reconnect if not explicitly closed and reconnect attempts > 0
+      if (attemptRef.current < currentReconnectAttempts) {
         attemptRef.current += 1;
         reconnectTimeoutRef.current = window.setTimeout(() => {
           connect();
-        }, reconnectInterval);
+        }, currentReconnectInterval);
       }
     };
 
     socket.onerror = (event) => {
       setStatus('error');
-      if (onError) onError(event);
+      if (currentOnError) currentOnError(event);
     };
-  }, [onOpen, onMessage, onClose, onError, reconnectAttempts, reconnectInterval]);
+  }, []); // No dependencies to avoid unnecessary reconnections
 
   const sendMessage = useCallback((data: any) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -109,9 +118,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     setStatus('closed');
   }, []);
 
-  // Initialize connection
+  // Initialize connection - only once on mount
   useEffect(() => {
-    if (automaticOpen) {
+    // Only connect if automatic open is enabled and if there's no existing socket
+    if (automaticOpen && !socketRef.current) {
       connect();
     }
     
@@ -119,13 +129,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
       // Clean up on unmount
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
       
       if (socketRef.current) {
         socketRef.current.close();
+        socketRef.current = null;
       }
     };
-  }, [connect, automaticOpen]);
+  }, [automaticOpen]); // Intentionally removed 'connect' from deps to avoid reconnection
 
   return {
     sendMessage,
