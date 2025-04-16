@@ -26,7 +26,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     onClose,
     onError,
     reconnectInterval = 2000,
-    reconnectAttempts = 5,
+    reconnectAttempts = 0, // Set to 0 to prevent auto-reconnection
     automaticOpen = true,
   } = options;
 

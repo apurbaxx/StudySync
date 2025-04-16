@@ -73,11 +73,14 @@ export function LandingPage({ isDarkMode, toggleDarkMode }: LandingPageProps) {
       
       {/* Create Room Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-        <DialogContent className="bg-white dark:bg-gray-800 p-6 max-w-md mx-auto">
+        <DialogContent className="bg-white dark:bg-gray-800 p-6 max-w-md mx-auto" aria-describedby="create-room-description">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
               Create a Study Room
             </DialogTitle>
+            <p id="create-room-description" className="text-sm text-gray-600 dark:text-gray-400">
+              Enter your nickname and room details to create a study space.
+            </p>
           </DialogHeader>
           <RoomCreateForm onCancel={() => setCreateModalOpen(false)} />
         </DialogContent>
@@ -85,11 +88,14 @@ export function LandingPage({ isDarkMode, toggleDarkMode }: LandingPageProps) {
       
       {/* Join Room Modal */}
       <Dialog open={joinModalOpen} onOpenChange={setJoinModalOpen}>
-        <DialogContent className="bg-white dark:bg-gray-800 p-6 max-w-md mx-auto">
+        <DialogContent className="bg-white dark:bg-gray-800 p-6 max-w-md mx-auto" aria-describedby="join-room-description">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
               Join a Study Room
             </DialogTitle>
+            <p id="join-room-description" className="text-sm text-gray-600 dark:text-gray-400">
+              Enter your nickname and the room code to join a study session.
+            </p>
           </DialogHeader>
           <RoomJoinForm onCancel={() => setJoinModalOpen(false)} />
         </DialogContent>

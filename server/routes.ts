@@ -20,9 +20,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
+  // Map to store connections by socketId
+  const connections = new Map<string, WebSocket>();
+  
   wss.on('connection', (ws) => {
-    console.log('Client connected');
     const socketId = randomUUID();
+    
+    // Store the connection with its socketId
+    connections.set(socketId, ws);
+    // Store socketId on the WebSocket object for reference
+    (ws as any).socketId = socketId;
+    
+    console.log('Client connected', socketId.substring(0, 6));
     
     // Send the socket ID to the client
     ws.send(JSON.stringify({
