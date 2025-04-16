@@ -17,27 +17,76 @@ import { ZodError } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
-  // Set up WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // Set up WebSocket server with ping interval to keep connections alive
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    clientTracking: true,
+    perMessageDeflate: false // Disable compression for better performance
+  });
   
   // Map to store connections by socketId
   const connections = new Map<string, WebSocket>();
   
+  // Track "heartbeat" to detect dead connections
+  function heartbeat(this: WebSocket) {
+    (this as any).isAlive = true;
+  }
+  
+  // Set up ping interval to detect and clean up dead connections
+  const pingInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+      if ((ws as any).isAlive === false) {
+        const socketId = (ws as any).socketId;
+        if (socketId) {
+          console.log('Terminating inactive connection', socketId.substring(0, 6));
+          connections.delete(socketId);
+        }
+        return ws.terminate();
+      }
+      
+      (ws as any).isAlive = false;
+      try {
+        ws.ping();
+      } catch (e) {
+        // Connection already terminated, clean up
+        const socketId = (ws as any).socketId;
+        if (socketId) {
+          connections.delete(socketId);
+        }
+      }
+    });
+  }, 30000); // Check every 30 seconds
+  
+  // Clean up interval when server closes
+  wss.on('close', () => {
+    clearInterval(pingInterval);
+  });
+  
   wss.on('connection', (ws) => {
     const socketId = randomUUID();
     
+    // Mark connection as alive and store socket ID
+    (ws as any).isAlive = true;
+    (ws as any).socketId = socketId;
+    
+    // Register ping response handler
+    ws.on('pong', heartbeat);
+    
     // Store the connection with its socketId
     connections.set(socketId, ws);
-    // Store socketId on the WebSocket object for reference
-    (ws as any).socketId = socketId;
     
     console.log('Client connected', socketId.substring(0, 6));
     
     // Send the socket ID to the client
-    ws.send(JSON.stringify({
-      type: 'connection_established',
-      payload: { socketId }
-    }));
+    try {
+      ws.send(JSON.stringify({
+        type: 'connection_established',
+        payload: { socketId }
+      }));
+    } catch (error) {
+      console.error('Error sending connection message:', error);
+    }
     
     ws.on('message', async (message) => {
       try {
@@ -682,7 +731,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Send message if client exists and is open
           if (client && client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(message));
+            try {
+              client.send(JSON.stringify(message));
+            } catch (e) {
+              console.error('Error sending message to client', user.socketId.substring(0, 6), e);
+              // Clean up stale connections
+              connections.delete(user.socketId);
+            }
+          } else if (client) {
+            // Client exists but is not open - clean up stale connection
+            console.log('Cleaning up stale connection', user.socketId.substring(0, 6));
+            connections.delete(user.socketId);
           }
         }
       }

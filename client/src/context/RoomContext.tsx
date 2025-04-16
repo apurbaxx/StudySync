@@ -277,8 +277,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, [user, setUser, toast]);
   
-  // Create a stable WebSocket connection with disabled auto-reconnect
-  const { sendMessage } = useWebSocket({
+  // Create a stable WebSocket connection that doesn't constantly reconnect
+  const { sendMessage, status: wsStatus } = useWebSocket({
     onMessage: handleMessage,
     onOpen: () => console.log('Connected to study room server'),
     onClose: () => console.log('Disconnected from study room server'),
@@ -289,8 +289,15 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         variant: 'destructive'
       });
     },
-    reconnectAttempts: 0 // Disable automatic reconnection
+    reconnectAttempts: 3, // Limited reconnection attempts 
+    reconnectInterval: 3000, // 3 seconds between reconnect attempts
+    automaticOpen: true // Open the connection automatically
   });
+  
+  // Log WebSocket status changes for debugging
+  useEffect(() => {
+    console.log('WebSocket status:', wsStatus);
+  }, [wsStatus]);
   
   // Function to start the countdown timer
   const startCountdown = useCallback(() => {
