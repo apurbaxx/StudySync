@@ -50,7 +50,12 @@ interface RoomContextType {
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
 
-export function RoomProvider({ children }: { children: ReactNode }) {
+interface RoomContextProviderProps {
+  children: ReactNode;
+  onRoomTransition?: () => void;
+}
+
+export function RoomProvider({ children, onRoomTransition }: RoomContextProviderProps) {
   const { user, setUser } = useUser();
   const { toast } = useToast();
   
@@ -103,6 +108,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             description: `Room ${data.payload.roomId} created successfully!`,
             variant: 'default'
           });
+          
+          // Trigger transition to study room if a callback was provided
+          if (onRoomTransition) {
+            console.log('Transitioning to study room after room creation');
+            onRoomTransition();
+          }
           break;
           
         case 'room_joined':
@@ -136,6 +147,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           }
           
           setIsLoadingRoom(false);
+          
+          // Trigger transition to study room if a callback was provided
+          if (onRoomTransition) {
+            console.log('Transitioning to study room after joining room');
+            onRoomTransition();
+          }
           break;
           
         case 'member_joined':
@@ -290,7 +307,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error handling WebSocket message:', error);
     }
-  }, [user, setUser, toast]);
+  }, [user, setUser, toast, onRoomTransition]);
   
   // Create a stable WebSocket connection that doesn't constantly reconnect
   const { sendMessage, status: wsStatus } = useWebSocket({

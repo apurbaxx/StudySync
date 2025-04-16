@@ -46,7 +46,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <UserProvider>
-        <RoomProvider>
+        <RoomProvider onRoomTransition={enterRoom}>
           {inRoom ? (
             <StudyRoom onLeaveRoom={leaveRoom} />
           ) : (
