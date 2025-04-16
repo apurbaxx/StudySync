@@ -104,7 +104,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     ws.on('close', async () => {
-      console.log('Client disconnected');
+      console.log('Client disconnected', socketId.substring(0, 6));
+      
+      // Remove from connections map
+      connections.delete(socketId);
+      
+      // Handle user leaving room
       await handleLeaveRoom(ws, socketId);
     });
   });
@@ -418,7 +423,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!room) return;
       
       // Calculate end time
-      const duration = room.timerMode === 'study' ? room.studyDuration : room.breakDuration;
+      const duration = room.timerMode === 'study' 
+        ? (room.studyDuration ?? 25 * 60) 
+        : (room.breakDuration ?? 5 * 60);
       const endTime = new Date(Date.now() + duration * 1000);
       
       // Update room timer state
@@ -659,43 +666,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   // Helper to broadcast messages to all clients in a room
-  function broadcastToRoom(roomId: string, excludeSocketId: string, message: any) {
-    wss.clients.forEach(async (client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        // Get the user associated with this client
-        try {
-          // Extract socketId from each client - we need to iterate through all users 
-          // to find which one has this connection
-          const users = await storage.getUsersByRoomId(roomId);
+  async function broadcastToRoom(roomId: string, excludeSocketId: string, message: any) {
+    try {
+      // Get all users in the room
+      const users = await storage.getUsersByRoomId(roomId);
+      
+      // For each user in the room, send the message to their socket if it exists
+      for (const user of users) {
+        // Skip the sender
+        if (user.socketId === excludeSocketId) continue;
+        
+        // Get the client socket
+        if (user.socketId) {
+          const client = connections.get(user.socketId);
           
-          for (const user of users) {
-            // Skip the sender if excludeSocketId is provided
-            if (user.socketId === excludeSocketId) continue;
-            
-            // If client matches a user in the room, send the message
-            if (client === getClientBySocketId(user.socketId)) {
-              client.send(JSON.stringify(message));
-              break;
-            }
+          // Send message if client exists and is open
+          if (client && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(message));
           }
-        } catch (error) {
-          console.error('Error broadcasting to room:', error);
         }
       }
-    });
+    } catch (error) {
+      console.error('Error broadcasting to room:', error);
+    }
   }
   
   // Helper to get a client by socket ID
   function getClientBySocketId(socketId: string): WebSocket | undefined {
-    let targetClient: WebSocket | undefined;
-    
-    wss.clients.forEach((client: any) => {
-      if (client.socketId === socketId) {
-        targetClient = client;
-      }
-    });
-    
-    return targetClient;
+    return connections.get(socketId);
   }
   
   // Generate a simple 6-character room code
