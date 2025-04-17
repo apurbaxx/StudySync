@@ -60,11 +60,22 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  
+  // Windows compatibility - no reusePort option and using localhost instead of 0.0.0.0
+  // to avoid the ENOTSUP: operation not supported error
+  const isWindows = process.platform === 'win32';
+  
+  if (isWindows) {
+    server.listen(port, 'localhost', () => {
+      log(`serving on localhost:${port} (Windows compatibility mode)`);
+    });
+  } else {
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port}`);
+    });
+  }
 })();

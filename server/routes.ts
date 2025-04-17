@@ -18,12 +18,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Set up WebSocket server with ping interval to keep connections alive
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
+  // Windows compatibility: Simplified WebSocket options to avoid ENOTSUP error
+  const isWindows = process.platform === 'win32';
+  
+  const wsOptions = {
+    server: httpServer,
     path: '/ws',
-    clientTracking: true,
-    perMessageDeflate: false // Disable compression for better performance
-  });
+    clientTracking: true
+  };
+  
+  // Use simpler configuration for Windows to avoid errors
+  const wss = new WebSocketServer(wsOptions);
   
   // Map to store connections by socketId
   const connections = new Map<string, WebSocket>();
